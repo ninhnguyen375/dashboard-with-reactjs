@@ -29,6 +29,17 @@ class Navbar extends React.Component {
     window.localStorage.removeItem("adminPageAccess");
     window.location = "/home";
   };
+  toggleSidebar = () => {
+    const sidebar = window.document.getElementsByClassName("sidebar")[0];
+    const app = window.document.getElementsByClassName("App")[0];
+    if (sidebar.style.display === "none") {
+      app.style.marginLeft = "166px";
+      sidebar.style.display = "block";
+    } else {
+      app.style.marginLeft = "0";
+      sidebar.style.display = "none";
+    }
+  };
   render() {
     const { classes } = this.props;
 
@@ -36,13 +47,20 @@ class Navbar extends React.Component {
       <div className={classes.root}>
         <AppBar position="fixed" color="inherit">
           <Toolbar>
-            <Typography variant="h6" color="inherit" className={classes.grow}>
-              <NavLink to="/admin">Admin Page</NavLink>
+            <Typography
+              variant="h6"
+              color="inherit"
+              className={`${classes.grow} brand-title`}>
+              <NavLink to="/admin" className="brand-text">
+                Admin Page
+              </NavLink>
               <IconButton
+                id="toggleSidebar"
+                onClick={this.toggleSidebar}
                 className={classes.menuButton}
                 color="inherit"
                 aria-label="Menu">
-                <MenuIcon />
+                <MenuIcon color="action" />
               </IconButton>
             </Typography>
             {/* Right */}

@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { withStyles } from "@material-ui/core/styles";
+import React, { Component } from 'react';
+import { withStyles } from '@material-ui/core/styles';
 import {
   TextField,
   Button,
@@ -10,47 +10,49 @@ import {
   CircularProgress,
   Grid,
   Input
-} from "@material-ui/core";
+} from '@material-ui/core';
 import {
   editProduct,
   getProductsAndCategories
-} from "../../store/action/productAction";
-import { connect } from "react-redux";
-import CustomizedSnackbars from "../snackbar/CustomizedSnackbars";
+} from '../../store/action/productAction';
+import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
+import CustomizedSnackbars from '../snackbar/CustomizedSnackbars';
 const styles = () => ({
   textField: {
     margin: 10,
     width: 400
   },
   formTitle: {
-    color: "#4445"
+    color: '#4445'
   },
   bgWhite: {
-    color: "white"
+    color: 'white'
   },
   root: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
     // minHeight: "100%",
-    borderRadius: "7px",
+    borderRadius: '7px',
     padding: 20
   }
 });
 
 class EditProduct extends Component {
   state = {
-    _id: "",
-    product_name: "",
+    _id: '',
+    product_name: '',
     product_price: 1,
-    producer: "",
+    producer: '',
     quantity: 1,
     product_img: null,
-    product_img_path: "",
+    product_img_path: '',
     onLoading: false,
-    message: "",
+    message: '',
     open: false,
     product: {},
-    stateImgPath: "",
-    categories: []
+    stateImgPath: '',
+    categories: [],
+    validateError: false
   };
   handleChangeFile = e => {
     this.setState({
@@ -73,16 +75,16 @@ class EditProduct extends Component {
     if (!input) {
       return false;
     }
-    if (!regex.exec(value)) {
+    if (!regex.test(value)) {
       input.focus();
-      input.click();
+      this.setState({
+        err: { [setError]: true },
+        validateError: 'Please complete this field'
+      });
       return false;
     }
-    if (regex.exec(value)[0] !== regex.exec(value).input) {
-      input.focus();
-      return false;
-    }
-    if (setError) this.setState({ err: { [setError.key]: false } });
+    if (setError)
+      this.setState({ err: { [setError.key]: false }, validateError: '' });
     return true;
   };
   validated__input_file = (inputName, setError) => {
@@ -100,23 +102,19 @@ class EditProduct extends Component {
       !this.validated__input(
         this.state.product_name,
         /[\w\s-]{1,}/,
-        "product_name"
+        'product_name'
       ) ||
       !this.validated__input(
         this.state.product_price,
-        /^[1-9][0-9]{1,5}/,
-        "product_price"
+        /^[0-9]{1,5}$/,
+        'product_price'
       ) ||
-      !this.validated__input(
-        this.state.quantity,
-        /^[1-9][0-9]{1,5}/,
-        "quantity"
-      ) ||
+      !this.validated__input(this.state.quantity, /^[0-9]{1,5}$/, 'quantity') ||
       !this.validated__input(
         this.state.producer,
         /[\w]{1,20}/,
-        "producer",
-        "errSelection"
+        'producer',
+        'errSelection'
       )
     ) {
       return false;
@@ -138,7 +136,7 @@ class EditProduct extends Component {
         open: true,
         message: `Edit ${this.state.product_name} success`,
         stateImgPath: this.state.product_img_path
-          ? `http://localhost:3001/uploads/${this.state.product_img_path.trim()}`
+          ? `/uploads/${this.state.product_img_path.trim()}`
           : this.state.stateImgPath
       });
     }
@@ -154,26 +152,34 @@ class EditProduct extends Component {
         quantity: pro.quantity,
         product_img_path: pro.product_img,
         _id: pro._id,
-        stateImgPath: `http://localhost:3001${pro.product_img}`
+        stateImgPath: pro.product_img
       });
     }
     if (this.props.categories) {
       this.setState({ categories: this.props.categories.data });
-      console.log(this.state);
     }
   }
   render() {
     const { classes } = this.props;
     return (
       <div className={`${classes.root} fadeIn`}>
-        <h2 className={classes.formTitle}>Edit Product</h2>
+        <h2 className={classes.formTitle}>
+          Edit Product
+          <Link to="/admin/product" style={{ marginLeft: 200 }}>
+            <Button variant="contained" color="default">
+              Back
+            </Button>
+          </Link>
+        </h2>
         {this.props.haveProduct ? (
           <Grid container>
             <Grid item xs={6}>
               <form
+                noValidate
                 id="addNewProduct"
                 autoComplete="off"
-                onSubmit={this.handleSubmit}>
+                onSubmit={this.handleSubmit}
+              >
                 {/* Product Name */}
                 <TextField
                   required
@@ -216,7 +222,8 @@ class EditProduct extends Component {
                     onChange={this.handleChange}
                     name="producer"
                     renderValue={value => value}
-                    input={<Input id="producer-select" />}>
+                    input={<Input id="producer-select" />}
+                  >
                     {this.state.categories &&
                       this.state.categories.map((item, index) => (
                         <MenuItem key={index} value={item.producer_id}>
@@ -228,14 +235,26 @@ class EditProduct extends Component {
                 <br />
                 {/* Input img */}
                 <TextField
+                  accept="image/*"
                   name="product_img"
-                  label="Choose Image"
-                  className={classes.textField}
+                  className="hidden"
                   onChange={this.handleChangeFile}
                   type="file"
+                  id="contained-button-file"
                 />
+                <label htmlFor="contained-button-file">
+                  <Button variant="contained" component="span">
+                    Upload Image
+                  </Button>
+                </label>
                 <br />
-                {this.props.createError && <h4>{this.props.createError}</h4>}
+                <br />
+                {this.props.createError && (
+                  <p style={{ color: 'red' }}>{this.props.createError}</p>
+                )}
+                {this.state.validateError && (
+                  <p style={{ color: 'red' }}>{this.state.validateError}</p>
+                )}
               </form>
               {this.state.onLoading ? (
                 <Button variant="contained" color="primary">
@@ -246,7 +265,8 @@ class EditProduct extends Component {
                   variant="contained"
                   color="primary"
                   form="addNewProduct"
-                  type="submit">
+                  type="submit"
+                >
                   Edit
                 </Button>
               )}

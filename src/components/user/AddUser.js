@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { withStyles } from "@material-ui/core/styles";
+import React, { Component } from 'react';
+import { withStyles } from '@material-ui/core/styles';
 import {
   TextField,
   Button,
@@ -7,57 +7,50 @@ import {
   FormControl,
   InputLabel,
   Select,
-  CircularProgress
-} from "@material-ui/core";
-import {
-  createProduct,
-  getProductsWithRedux
-} from "../../store/action/productAction";
-import { connect } from "react-redux";
-import CustomizedSnackbars from "../snackbar/CustomizedSnackbars";
+  CircularProgress,
+  Grid,
+  Input,
+  Checkbox
+} from '@material-ui/core';
+import { getUsersWithRedux, createUser } from '../../store/action/userAction';
+import { connect } from 'react-redux';
+import CustomizedSnackbars from '../snackbar/CustomizedSnackbars';
 const styles = () => ({
-  container: {
-    display: "flex",
-    flexWrap: "wrap"
-  },
   textField: {
     margin: 10,
-    width: 200
-  },
-  dense: {
-    marginTop: 19
-  },
-  menu: {
-    width: 200
+    width: 400
   },
   formTitle: {
-    color: "#4445"
+    color: '#4445'
   },
   bgWhite: {
-    color: "white"
+    color: 'white'
+  },
+  root: {
+    backgroundColor: 'white',
+    borderRadius: '7px',
+    padding: 20
   }
 });
 
-class AddProduct extends Component {
+class EditUser extends Component {
   state = {
-    product_name: "",
-    product_price: "",
-    producer: "",
-    quantity: "",
-    product_img: "",
-    product_img_path: "",
-    isAdding: false,
-    message: "",
+    _id: '',
+    user_name: '',
+    user_password: '',
+    user_group: '',
+    user_phone: '',
+    user_email: '',
+    onLoading: '',
+    message: '',
+    user_permission: {
+      product: false,
+      user: false,
+      bill: false,
+      category: false
+    },
     open: false,
-    err: {
-      errSelection: false
-    }
-  };
-  handleChangeFile = e => {
-    this.setState({
-      product_img: e.target.files[0],
-      product_img_path: e.target.files[0].name
-    });
+    user: {}
   };
   handleChange = e => {
     this.setState({ [e.target.name]: e.target.value });
@@ -65,11 +58,17 @@ class AddProduct extends Component {
   handleClose = () => {
     this.setState({ open: false });
   };
+  checkedCheckBox = () => {
+    const permiss = window.document.getElementsByName('user_permission');
+    for (let i = 0; i < permiss.length; i++) {
+      permiss[i].checked = '';
+    }
+  };
   validated__input = (stateValue, regex, inputName, setError) => {
     const value = stateValue;
     const input = document.getElementsByName(inputName)[0];
     if (setError) this.setState({ err: { [setError]: true } });
-    
+
     if (!input) {
       return false;
     }
@@ -78,18 +77,8 @@ class AddProduct extends Component {
       input.click();
       return false;
     }
-    if (regex.exec(value)[0] !== value) {
+    if (regex.exec(value)[0] !== regex.exec(value).input) {
       input.focus();
-      return false;
-    }
-    if (setError) this.setState({ err: { [setError.key]: false } });
-    return true;
-  }; 
-  validated__input_file = (inputName, setError) => {
-    const input = document.getElementsByName(inputName)[0];
-    if (setError) this.setState({ err: { [setError]: true } });
-    if (!input || !input.value) {
-      input.click();
       return false;
     }
     if (setError) this.setState({ err: { [setError.key]: false } });
@@ -98,147 +87,205 @@ class AddProduct extends Component {
   valudated__form = () => {
     if (
       !this.validated__input(
-        this.state.product_name,
+        this.state.user_name,
         /[\w\s-]{1,}/,
-        "product_name"
+        'user_name'
       ) ||
       !this.validated__input(
-        this.state.product_price,
-        /[1-9]{1,5}/,
-        "product_price"
+        this.state.user_password,
+        /[\w\s-]{6,}/,
+        'user_password'
       ) ||
-      !this.validated__input(this.state.quantity, /[1-9]{1,5}/, "quantity") ||
       !this.validated__input(
-        this.state.producer,
+        this.state.user_phone,
+        /[0-9]{10,12}/,
+        'user_phone'
+      ) ||
+      !this.validated__input(
+        this.state.user_group,
         /[\w]{1,20}/,
-        "producer",
-        "errSelection"
+        'user_group',
+        'errSelection'
       ) ||
-      !this.validated__input_file(
-        "product_img"
+      !this.validated__input(
+        this.state.user_email,
+        /^[a-z][a-z0-9_.]{5,32}@[a-z0-9]{2,}(\.[a-z0-9]{2,4}){1,2}$/,
+        'user_email'
       )
     ) {
       return false;
     }
     return true;
   };
+  // submit
   handleSubmit = async e => {
-    const { createError, createProduct, getProductsWithRedux } = this.props;
     e.preventDefault();
     if (!this.valudated__form()) {
       return;
     }
-    this.setState({ isAdding: true });
-    await createProduct(this.state);
-    if (!createError) {
-      getProductsWithRedux();
+    this.setState({ onLoading: true });
+    await this.props.createUser(this.state);
+    if (!this.props.createError) {
       this.setState({
-        isAdding: false,
+        onLoading: false,
         open: true,
-        message: `Adding ${this.state.product_name} success`
+        message: `Create ${this.state.user_email} success`
+      });
+      this.props.getUsersWithRedux();
+    } else {
+      this.setState({
+        onLoading: false
       });
     }
   };
-
+  handleSelectPermission = event => {
+    this.setState({
+      user_permission: {
+        ...this.state.user_permission,
+        [event.target.name]: event.target.checked
+      }
+    });
+  };
   render() {
     const { classes } = this.props;
     return (
-      <>
-        <h2 className={classes.formTitle}>Add new Product</h2>
-        <form
-          encType="multipart/form-data"
-          id="addNewProduct"
-          className={classes.container}
-          noValidate
-          autoComplete="off"
-          onSubmit={this.handleSubmit}
-        >
-          {/* Product Name */}
-          <TextField
-            required
-            name="product_name"
-            label="Product Name"
-            className={classes.textField}
-            onChange={this.handleChange}
-          />
-          {/* Product Price */}
-          <TextField
-            required
-            name="product_price"
-            label="Price ($)"
-            className={classes.textField}
-            onChange={this.handleChange}
-            type="number"
-          />
-          {/* Quantity */}
-          <TextField
-            required
-            value={this.state.quantity}
-            name="quantity"
-            label="Quantity"
-            className={classes.textField}
-            onChange={this.handleChange}
-            type="number"
-          />
-          {/* Producer - Catefory */}
-          <FormControl className={classes.textField}>
-            <InputLabel htmlFor="select-producer">Catefory</InputLabel>
-            <Select
-              error={this.state.err.errSelection}
-              value={this.state.producer}
-              onChange={this.handleChange}
-              inputProps={{
-                name: "producer",
-                id: "select-producer"
-              }}
+      <div className={`${classes.root} fadeIn`}>
+        <h2 className={classes.formTitle}>Create New User</h2>
+        <Grid container>
+          <Grid item xs={6}>
+            <form
+              id="addNewUser"
+              autoComplete="off"
+              onSubmit={this.handleSubmit}
             >
-              <MenuItem selected value="N">
-                Nokia
-              </MenuItem>
-              <MenuItem value="SS">Samsung</MenuItem>
-            </Select>
-          </FormControl>
-          {/* Input img */}
-          <TextField
-            required
-            name="product_img"
-            label="Choose Image"
-            className={classes.textField}
-            onChange={this.handleChangeFile}
-            type="file"
-          />
-          {this.props.createError && <h4>{this.props.createError}</h4>}
-        </form>
-        <Button
-          variant="contained"
-          color="primary"
-          form="addNewProduct"
-          type="submit"
-        >
-          {this.state.isAdding ? (
-            <CircularProgress size={24} className={classes.bgWhite} />
-          ) : (
-            <span>Add New Product</span>
-          )}
-        </Button>
-        <div onClick={this.handleClose}>
-          <CustomizedSnackbars open={this.state.open}>
-            {this.state.message}
-          </CustomizedSnackbars>
-        </div>
-      </>
+              {/* User Name */}
+              <TextField
+                required
+                name="user_name"
+                label="User Name"
+                value={this.state.user_name}
+                className={classes.textField}
+                onChange={this.handleChange}
+              />
+              <br />
+              {/* User Password */}
+              <TextField
+                required
+                name="user_password"
+                label="Password"
+                className={classes.textField}
+                onChange={this.handleChange}
+                value={this.state.user_password}
+              />
+              <br />
+              {/* Phone */}
+              <TextField
+                required
+                value={this.state.user_phone}
+                name="user_phone"
+                label="Phone"
+                className={classes.textField}
+                onChange={this.handleChange}
+                type="number"
+              />
+              <br />
+              {/* Group */}
+              <FormControl className={classes.textField}>
+                <InputLabel htmlFor="user_group-select">Group</InputLabel>
+                <Select
+                  required
+                  value={this.state.user_group}
+                  onChange={this.handleChange}
+                  name="user_group"
+                  renderValue={value => value}
+                  input={<Input id="user_group-select" />}
+                >
+                  <MenuItem value="admin">Admin</MenuItem>
+                  <MenuItem value="client">Client</MenuItem>
+                </Select>
+              </FormControl>
+              <br />
+              {/* permission */}
+              {this.state.user_group === 'admin' ? (
+                <>
+                  <p style={{ color: 'gray', fontSize: '13px' }}>
+                    Choose permission manager:
+                  </p>
+                  <Checkbox
+                    checked={this.state.user_permission.bill}
+                    onChange={this.handleSelectPermission}
+                    name="bill"
+                  />
+                  Bill
+                  <Checkbox
+                    checked={this.state.user_permission.user}
+                    onChange={this.handleSelectPermission}
+                    name="user"
+                  />
+                  User
+                  <Checkbox
+                    checked={this.state.user_permission.product}
+                    onChange={this.handleSelectPermission}
+                    name="product"
+                  />
+                  Product
+                  <Checkbox
+                    checked={this.state.user_permission.category}
+                    onChange={this.handleSelectPermission}
+                    name="category"
+                  />
+                  Category
+                </>
+              ) : null}
+              {/* Email */}
+              <TextField
+                required
+                value={this.state.user_email}
+                name="user_email"
+                label="Email"
+                className={classes.textField}
+                onChange={this.handleChange}
+                type="email"
+              />
+              <br />
+              {this.props.createError && (
+                <h4 style={{ color: 'red' }}>{this.props.createError}</h4>
+              )}
+            </form>
+            {this.state.onLoading ? (
+              <Button variant="contained" color="primary">
+                <CircularProgress size={24} className={classes.bgWhite} />
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                form="addNewUser"
+                type="submit"
+              >
+                Create
+              </Button>
+            )}
+            <div onClick={this.handleClose}>
+              <CustomizedSnackbars open={this.state.open}>
+                {this.state.message}
+              </CustomizedSnackbars>
+            </div>
+          </Grid>
+        </Grid>
+      </div>
     );
   }
 }
 const mapStateToProps = state => {
   return {
-    createError: state.product.createError
+    createError: state.user.createError
   };
 };
 const mapDispatchToProps = dispatch => {
   return {
-    createProduct: product => dispatch(createProduct(product)),
-    getProductsWithRedux: () => dispatch(getProductsWithRedux())
+    createUser: user => dispatch(createUser(user)),
+    getUsersWithRedux: () => dispatch(getUsersWithRedux())
   };
 };
 
@@ -246,5 +293,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(AddProduct)
+  )(EditUser)
 );

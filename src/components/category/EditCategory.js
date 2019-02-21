@@ -1,39 +1,41 @@
-import React, { Component } from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { TextField, Button, CircularProgress, Grid } from "@material-ui/core";
+import React, { Component } from 'react';
+import { withStyles } from '@material-ui/core/styles';
+import { TextField, Button, CircularProgress, Grid } from '@material-ui/core';
 import {
   editCategory,
   getCategoriesWithRedux
-} from "../../store/action/categoryAction";
-import { connect } from "react-redux";
-import CustomizedSnackbars from "../snackbar/CustomizedSnackbars";
+} from '../../store/action/categoryAction';
+import { connect } from 'react-redux';
+import CustomizedSnackbars from '../snackbar/CustomizedSnackbars';
+import { Link } from 'react-router-dom';
 const styles = () => ({
   textField: {
     margin: 10,
     width: 400
   },
   formTitle: {
-    color: "#4445"
+    color: '#4445'
   },
   bgWhite: {
-    color: "white"
+    color: 'white'
   },
   root: {
-    backgroundColor: "white",
-    borderRadius: "7px",
+    backgroundColor: 'white',
+    borderRadius: '7px',
     padding: 20
   }
 });
 
 class EditCategory extends Component {
   state = {
-    _id: "",
-    producer_name: "",
-    producer_id: "",
-    onLoading: "",
-    message: "",
+    _id: '',
+    producer_name: '',
+    producer_id: '',
+    onLoading: '',
+    message: '',
     open: false,
-    category: {}
+    category: {},
+    validateError: false
   };
   handleChange = e => {
     this.setState({ [e.target.name]: e.target.value });
@@ -50,16 +52,12 @@ class EditCategory extends Component {
     if (!input) {
       return false;
     }
-    if (!regex.exec(value)) {
+    if (!regex.test(value)) {
       input.focus();
-      input.click();
+      this.setState({ validateError: 'Please complete this field' });
       return false;
     }
-    if (regex.exec(value)[0] !== regex.exec(value).input) {
-      input.focus();
-      return false;
-    }
-    if (setError) this.setState({ err: { [setError.key]: false } });
+    this.setState({ validateError: '' });
     return true;
   };
   valudated__form = () => {
@@ -67,9 +65,13 @@ class EditCategory extends Component {
       !this.validated__input(
         this.state.producer_name,
         /[\w\s-]{1,}/,
-        "producer_name"
+        'producer_name'
       ) ||
-      !this.validated__input(this.state.producer_id, /[A-Z]{1,}/, "producer_id")
+      !this.validated__input(
+        this.state.producer_id,
+        /^[A-Z]{1,}$/,
+        'producer_id'
+      )
     ) {
       return false;
     }
@@ -110,14 +112,23 @@ class EditCategory extends Component {
     const { classes } = this.props;
     return (
       <div className={`${classes.root} fadeIn`}>
-        <h2 className={classes.formTitle}>Edit Category</h2>
+        <h2 className={classes.formTitle}>
+          Edit Category
+          <Link to="/admin/category" style={{ marginLeft: 200 }}>
+            <Button variant="contained" color="default">
+              Back
+            </Button>
+          </Link>
+        </h2>
         {this.props.haveCategory ? (
           <Grid container>
             <Grid item xs={6}>
               <form
+                noValidate
                 id="editCategory"
                 autoComplete="off"
-                onSubmit={this.handleSubmit}>
+                onSubmit={this.handleSubmit}
+              >
                 {/* ID */}
                 <TextField
                   required
@@ -126,6 +137,7 @@ class EditCategory extends Component {
                   value={this.state.producer_name}
                   className={classes.textField}
                   onChange={this.handleChange}
+                  helperText="Uppercase Only"
                 />
                 <br />
                 {/* Name */}
@@ -136,10 +148,15 @@ class EditCategory extends Component {
                   className={classes.textField}
                   onChange={this.handleChange}
                   value={this.state.producer_id}
+                  helperText="Not special character"
                 />
                 <br />
                 {this.props.editError && (
-                  <h4 style={{ color: "red" }}>{this.props.editError}</h4>
+                  <p style={{ color: 'red' }}>{this.props.editError}</p>
+                )}{' '}
+                <br />
+                {this.state.validateError && (
+                  <p style={{ color: 'red' }}>{this.state.validateError}</p>
                 )}
               </form>
               {this.state.onLoading ? (
@@ -151,7 +168,8 @@ class EditCategory extends Component {
                   variant="contained"
                   color="primary"
                   form="editCategory"
-                  type="submit">
+                  type="submit"
+                >
                   Edit
                 </Button>
               )}

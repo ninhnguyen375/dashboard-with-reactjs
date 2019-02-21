@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { withStyles } from "@material-ui/core/styles";
+import React, { Component } from 'react';
+import { withStyles } from '@material-ui/core/styles';
 import {
   TextField,
   Button,
@@ -8,18 +8,18 @@ import {
   InputLabel,
   Select,
   CircularProgress
-} from "@material-ui/core";
+} from '@material-ui/core';
 import {
   createProduct,
   getProductsWithRedux
-} from "../../store/action/productAction";
-import { getCategoriesWithRedux } from "../../store/action/categoryAction";
-import { connect } from "react-redux";
-import CustomizedSnackbars from "../snackbar/CustomizedSnackbars";
+} from '../../store/action/productAction';
+import { getCategoriesWithRedux } from '../../store/action/categoryAction';
+import { connect } from 'react-redux';
+import CustomizedSnackbars from '../snackbar/CustomizedSnackbars';
 const styles = () => ({
   container: {
-    display: "flex",
-    flexWrap: "wrap"
+    display: 'flex',
+    flexWrap: 'wrap'
   },
   textField: {
     margin: 10,
@@ -32,10 +32,10 @@ const styles = () => ({
     width: 200
   },
   formTitle: {
-    color: "#4445"
+    color: '#4445'
   },
   bgWhite: {
-    color: "white"
+    color: 'white'
   }
 });
 
@@ -47,19 +47,20 @@ class AddProduct extends Component {
     }
   }
   state = {
-    product_name: "",
-    product_price: "",
-    producer: "",
-    quantity: "",
-    product_img: "",
-    product_img_path: "",
+    product_name: '',
+    product_price: '',
+    producer: '',
+    quantity: '',
+    product_img: '',
+    product_img_path: '',
     isAdding: false,
-    message: "",
+    message: '',
     open: false,
     err: {
       errSelection: false
     },
-    categories: []
+    categories: [],
+    validateError: false
   };
   handleChangeFile = e => {
     this.setState({
@@ -81,16 +82,13 @@ class AddProduct extends Component {
     if (!input) {
       return false;
     }
-    if (!regex.exec(value)) {
+    if (!regex.test(value)) {
       input.focus();
-      input.click();
+      this.setState({ validateError: 'Please complete this field' });
       return false;
     }
-    if (regex.exec(value)[0] !== value) {
-      input.focus();
-      return false;
-    }
-    if (setError) this.setState({ err: { [setError.key]: false } });
+    if (setError)
+      this.setState({ err: { [setError.key]: false }, validateError: '' });
     return true;
   };
   validated__input_file = (inputName, setError) => {
@@ -108,21 +106,21 @@ class AddProduct extends Component {
       !this.validated__input(
         this.state.product_name,
         /[\w\s-]{1,}/,
-        "product_name"
+        'product_name'
       ) ||
       !this.validated__input(
         this.state.product_price,
-        /[1-9]{1,5}/,
-        "product_price"
+        /^[1-9]{1,5}$/,
+        'product_price'
       ) ||
-      !this.validated__input(this.state.quantity, /[1-9]{1,5}/, "quantity") ||
+      !this.validated__input(this.state.quantity, /^[1-9]{1,5}$/, 'quantity') ||
       !this.validated__input(
         this.state.producer,
-        /[\w]{1,20}/,
-        "producer",
-        "errSelection"
+        /^[\w]{1,20}$/,
+        'producer',
+        'errSelection'
       ) ||
-      !this.validated__input_file("product_img")
+      !this.validated__input_file('product_img')
     ) {
       return false;
     }
@@ -157,7 +155,8 @@ class AddProduct extends Component {
           className={classes.container}
           noValidate
           autoComplete="off"
-          onSubmit={this.handleSubmit}>
+          onSubmit={this.handleSubmit}
+        >
           {/* Product Name */}
           <TextField
             required
@@ -193,9 +192,10 @@ class AddProduct extends Component {
               value={this.state.producer}
               onChange={this.handleChange}
               inputProps={{
-                name: "producer",
-                id: "select-producer"
-              }}>
+                name: 'producer',
+                id: 'select-producer'
+              }}
+            >
               {this.state.categories &&
                 this.state.categories.map((item, index) => (
                   <MenuItem key={index} value={item.producer_id}>
@@ -213,13 +213,19 @@ class AddProduct extends Component {
             onChange={this.handleChangeFile}
             type="file"
           />
-          {this.props.createError && <h4>{this.props.createError}</h4>}
+          {this.props.createError && (
+            <p style={{ color: 'red' }}>{this.props.createError}</p>
+          )}
+          {this.state.validateError && (
+            <p style={{ color: 'red' }}>{this.state.validateError}</p>
+          )}
         </form>
         <Button
           variant="contained"
           color="primary"
           form="addNewProduct"
-          type="submit">
+          type="submit"
+        >
           {this.state.isAdding ? (
             <CircularProgress size={24} className={classes.bgWhite} />
           ) : (

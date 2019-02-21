@@ -3,6 +3,8 @@ import classNames from "classnames";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
 import { Redirect } from "react-router-dom";
+import { connect } from "react-redux";
+import moment from "moment";
 import {
   Toolbar,
   Tooltip,
@@ -18,12 +20,12 @@ import {
   TableRow,
   TableSortLabel,
   Button,
-  TextField
+  TextField,
+  CircularProgress
 } from "@material-ui/core";
-import { Build, FilterList, Delete } from "@material-ui/icons";
-import { connect } from "react-redux";
+import { Build, Delete, Autorenew } from "@material-ui/icons";
 import { lighten } from "@material-ui/core/styles/colorManipulator";
-import { deleteBills } from "../../store/action/billAction";
+import { deleteBills, getBillsWithRedux } from "../../store/action/billAction";
 
 function desc(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -52,6 +54,7 @@ function getSorting(order, orderBy) {
 }
 
 const rows = [
+  { _id: "createAt", numeric: true, disablePadding: false, label: "Create At" },
   { _id: "_id", numeric: true, disablePadding: false, label: "Bill Id" },
   {
     _id: "authId",
@@ -69,8 +72,15 @@ const rows = [
 ];
 
 class BillListHead extends React.Component {
+  state = {
+    selectedDate: new Date()
+  };
   createSortHandler = property => event => {
     this.props.onRequestSort(event, property);
+  };
+
+  handleDateChange = date => {
+    this.setState({ selectedDate: date });
   };
 
   render() {
@@ -80,21 +90,50 @@ class BillListHead extends React.Component {
       orderBy,
       numSelected,
       rowCount,
-      onSearch
+      onSearch,
+      onFilterDate
     } = this.props;
 
     return (
       <TableHead>
         {/* Search */}
         <TableRow>
-          <TableCell colSpan={8}>
+          <TableCell colSpan={4}>
             <TextField
               _id="standard-search"
-              label="Search by Bill Id"
+              label="Search by Bill ID"
               type="search"
               margin="normal"
               onChange={onSearch}
             />
+          </TableCell>
+          <TableCell colSpan={4}>
+            <TextField
+              id="dateFrom"
+              label="From"
+              type="date"
+              defaultValue=""
+              InputLabelProps={{
+                shrink: true
+              }}
+            />
+            <TextField
+              id="dateTo"
+              label="To"
+              type="date"
+              defaultValue=""
+              InputLabelProps={{
+                shrink: true
+              }}
+            />
+            <Button
+              style={{ marginTop: "15px" }}
+              variant="contained"
+              color="primary"
+              size="small"
+              onClick={onFilterDate}>
+              Filter
+            </Button>
           </TableCell>
         </TableRow>
         <TableRow>
@@ -169,9 +208,17 @@ const toolbarStyles = theme => ({
 });
 class BillListToolbar extends React.Component {
   handleDelete = async () => {
+    this.setState({ isDeleting: true });
     await this.props.deleteBills(this.props.selected);
   };
 
+  componentWillUnmount() {
+    this.setState({ isDeleting: false });
+  }
+
+  state = {
+    isDeleting: false
+  };
   render() {
     const { numSelected, classes } = this.props;
     return (
@@ -196,13 +243,19 @@ class BillListToolbar extends React.Component {
             {numSelected > 0 ? (
               <Tooltip title="Delete">
                 <IconButton onClick={this.handleDelete} aria-label="Delete">
-                  <Delete />
+                  {this.state.isDeleting ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    <Delete />
+                  )}
                 </IconButton>
               </Tooltip>
             ) : (
               <Tooltip title="Filter list">
-                <IconButton aria-label="Filter list">
-                  <FilterList />
+                <IconButton
+                  aria-label="Filter list"
+                  onClick={this.props.onRenew}>
+                  <Autorenew />
                 </IconButton>
               </Tooltip>
             )}
@@ -299,6 +352,26 @@ class BillList extends React.Component {
     this.setState({ data: filterSearch });
   };
 
+  handleFilterDate = () => {
+    let dateFrom = window.document.getElementById("dateFrom").value;
+    let dateTo = window.document.getElementById("dateTo").value;
+    if (!dateFrom && !dateTo) this.setState({ data: this.props.bills });
+    if (dateFrom === "") return;
+    dateFrom = moment(dateFrom, "YYYY-MM-DD");
+    if (dateTo === "") dateTo = undefined;
+    else dateTo = moment(dateTo, "YYYY-MM-DD");
+    let filterDate = [];
+    filterDate = this.props.bills.filter(bill => {
+      return moment(bill.createAt, "YYYY-MM-DD").isBetween(
+        dateFrom,
+        dateTo,
+        null,
+        "[]"
+      );
+    });
+    this.setState({ data: filterDate });
+  };
+
   handleClick = (event, _id) => {
     const { selected } = this.state;
     const selectedIndex = selected.indexOf(_id);
@@ -327,6 +400,10 @@ class BillList extends React.Component {
     this.setState({ rowsPerPage: event.target.value });
   };
 
+  handleRenew = async () => {
+    this.props.getBillsWithRedux();
+  };
+
   isSelected = _id => this.state.selected.indexOf(_id) !== -1;
 
   render() {
@@ -340,7 +417,11 @@ class BillList extends React.Component {
         {this.state.redirectToEdit && (
           <Redirect to={this.state.redirectToEdit} />
         )}
-        <BillListToolbar numSelected={selected.length} selected={selected} />
+        <BillListToolbar
+          numSelected={selected.length}
+          selected={selected}
+          onRenew={this.handleRenew}
+        />
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
             <BillListHead
@@ -350,6 +431,7 @@ class BillList extends React.Component {
               onSelectAllClick={this.handleSelectAllClick}
               onRequestSort={this.handleRequestSort}
               onSearch={this.handleSearch}
+              onFilterDate={this.handleFilterDate}
               rowCount={data.length}
             />
             <TableBody>
@@ -371,9 +453,28 @@ class BillList extends React.Component {
                           onClick={event => this.handleClick(event, n._id)}
                         />
                       </TableCell>
-                      <TableCell align="right">{n._id}</TableCell>
-                      <TableCell align="right">{n.authId}</TableCell>
-                      <TableCell align="right">{n.totalPrice}</TableCell>
+                      <TableCell
+                        style={{ maxWidth: "30px", wordWrap: "break-word" }}
+                        align="right">
+                        {n.createAt}
+                        {console.log(
+                          moment(n.createAt, "YYYY-MM-DD").isBetween(
+                            moment("15-2-2019", "DD-MM-YYYY"),
+                            moment("17-2-2019", "DD-MM-YYYY")
+                          )
+                        )}
+                      </TableCell>
+                      <TableCell
+                        style={{ maxWidth: "30px", wordWrap: "break-word" }}
+                        align="right">
+                        {n._id}
+                      </TableCell>
+                      <TableCell
+                        style={{ maxWidth: "30px", wordWrap: "break-word" }}
+                        align="right">
+                        {n.authId}
+                      </TableCell>
+                      <TableCell align="right">{n.totalPrice} $</TableCell>
                       <TableCell align="right">{n.status}</TableCell>
                       <TableCell>
                         <Button
@@ -419,4 +520,11 @@ BillList.propTypes = {
   classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(BillList);
+const mapDispatchToProps2 = dispatch => {
+  return { getBillsWithRedux: () => dispatch(getBillsWithRedux()) };
+};
+
+export default connect(
+  null,
+  mapDispatchToProps2
+)(withStyles(styles)(BillList));

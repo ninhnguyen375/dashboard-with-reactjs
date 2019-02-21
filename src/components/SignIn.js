@@ -1,12 +1,12 @@
-import React, { Component } from "react";
-import { Paper, TextField, Button } from "@material-ui/core";
-import Axios from "axios";
+import React, { Component } from 'react';
+import { Paper, TextField, Button } from '@material-ui/core';
+import Axios from 'axios';
 
 export class SignIn extends Component {
   state = {
-    user_email: "",
-    user_password: "",
-    loginError: "",
+    user_email: '',
+    user_password: '',
+    loginError: '',
     redirectToAdminPage: false
   };
   validated__input = (inputId, stateValue, regex) => {
@@ -16,19 +16,19 @@ export class SignIn extends Component {
       return true;
     } else {
       input.focus();
-      input.placeholder = "Input this Field";
-      this.setState({ loginError: "This Field is Require" });
+      input.placeholder = 'Input this Field';
+      this.setState({ loginError: 'This Field is Require' });
       return false;
     }
   };
   validated__form = () => {
     if (
       !this.validated__input(
-        "user_email",
+        'user_email',
         this.state.user_email,
         /^[a-z][a-z0-9_.]{5,32}@[a-z0-9]{2,}(\.[a-z0-9]{2,4}){1,2}$/
       ) ||
-      !this.validated__input("user_password", this.state.user_password, /.{6,}/)
+      !this.validated__input('user_password', this.state.user_password, /^.{6,}$/)
     ) {
       return false;
     }
@@ -43,10 +43,7 @@ export class SignIn extends Component {
       return;
     }
     try {
-      const admin = await Axios.post(
-        "http://localhost:3001/api/users/signin",
-        this.state
-      );
+      const admin = await Axios.post('/api/users/signin', this.state);
       if (admin.data.err) {
         this.setState({ loginError: admin.data.err });
       } else if (admin.data.adminDetails) {
@@ -55,12 +52,12 @@ export class SignIn extends Component {
           admin_key: admin.data.adminDetails._id
         };
         window.localStorage.setItem(
-          "adminPageAccess",
+          'adminPageAccess',
           JSON.stringify(objAdmin)
         );
-        window.location = "/admin";
+        window.location = '/admin';
       } else {
-        this.setState({ loginError: "Can not handle this error" });
+        this.setState({ loginError: 'Can not handle this error' });
       }
     } catch (err) {
       this.setState({ loginError: err.message });
@@ -68,51 +65,59 @@ export class SignIn extends Component {
   };
   render() {
     return (
-      <div
-        style={{
-          width: "100vw",
-          height: "100vh",
-          position: "relative",
-          background: "#eeeeee"
-        }}>
+      <div>
         <Paper
           elevation={1}
           style={{
-            position: "absolute",
-            transform: "translate(-50%, -50%)",
-            top: "40%",
-            left: "50%",
-            padding: "20px 50px",
-            minHeight: "50%"
-          }}>
-          <h2 style={{ color: "gray" }}>Sign In Admin</h2>
+            position: 'fixed',
+            transform: 'translate(-50%, -50%)',
+            top: '40%',
+            left: '50%',
+            padding: '20px 50px',
+            minHeight: '50%'
+          }}
+        >
+          <h2 style={{ color: 'gray' }}>
+            Sign In Admin
+            <a href="/home">
+              <Button
+                variant="contained"
+                color="default"
+                style={{ float: 'right' }}
+              >
+                Back
+              </Button>
+            </a>
+          </h2>
           <form
             onSubmit={this.handleSubmit}
             noValidate
-            style={{ margin: "auto" }}>
+            style={{ margin: 'auto' }}
+          >
             <TextField
-              style={{ width: "300px" }}
+              style={{ width: '300px' }}
               id="user_email"
               margin="normal"
               label="Email"
-              onChange={this.handleChange("user_email")}
+              onChange={this.handleChange('user_email')}
             />
             <br />
             <TextField
-              style={{ width: "300px" }}
+              style={{ width: '300px' }}
               id="user_password"
               margin="normal"
               label="Password"
-              onChange={this.handleChange("user_password")}
+              onChange={this.handleChange('user_password')}
               type="password"
             />
             {/* inner error */}
-            <p style={{ color: "red" }}>{this.state.loginError}</p>
+            <p style={{ color: 'red' }}>{this.state.loginError}</p>
             <Button
               color="primary"
               style={{ marginTop: 10 }}
               type="submit"
-              variant="contained">
+              variant="contained"
+            >
               Login
             </Button>
           </form>

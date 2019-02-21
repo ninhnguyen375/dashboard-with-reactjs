@@ -18,7 +18,8 @@ import {
   TableRow,
   TableSortLabel,
   Button,
-  TextField
+  TextField,
+  CircularProgress
 } from "@material-ui/core";
 import { Build, FilterList, Delete } from "@material-ui/icons";
 import { connect } from "react-redux";
@@ -167,9 +168,16 @@ const toolbarStyles = theme => ({
 });
 class CategoryListToolbar extends React.Component {
   handleDelete = async () => {
+    this.setState({ isDeleting: true });
     await this.props.deleteCategories(this.props.selected);
   };
 
+  componentWillUnmount() {
+    this.setState({ isDeleting: false });
+  }
+  state = {
+    isDeleting: false
+  };
   render() {
     const { numSelected, classes } = this.props;
     return (
@@ -194,7 +202,11 @@ class CategoryListToolbar extends React.Component {
             {numSelected > 0 ? (
               <Tooltip title="Delete">
                 <IconButton onClick={this.handleDelete} aria-label="Delete">
-                  <Delete />
+                  {this.state.isDeleting ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    <Delete />
+                  )}
                 </IconButton>
               </Tooltip>
             ) : (

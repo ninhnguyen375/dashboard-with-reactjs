@@ -20,7 +20,7 @@ const MyApp = () => (
 ReactDOM.render(
   <BrowserRouter>
     <Switch>
-      <Route path="/admin" exact component={MyApp} />
+      <Route path="/admin" component={MyApp} />
       <Route path="/" exact component={ToHome} />
     </Switch>
   </BrowserRouter>,

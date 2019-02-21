@@ -1,26 +1,27 @@
-import React, { Component } from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { Divider } from "@material-ui/core";
-import BillList from "./BillList";
-import { connect } from "react-redux";
+import React, { Component } from 'react';
+import { withStyles } from '@material-ui/core/styles';
+import { Divider } from '@material-ui/core';
+import BillList from './BillList';
+import { connect } from 'react-redux';
 import {
   getBillsWithRedux,
   closeAlertDeleted
-} from "../../store/action/billAction";
-import CustomizedSnackbars from "../snackbar/CustomizedSnackbars";
+} from '../../store/action/billAction';
+import CustomizedSnackbars from '../snackbar/CustomizedSnackbars';
+import Axios from 'axios';
 
 const styles = () => ({
   root: {
-    backgroundColor: "white",
-    minHeight: "100vh",
-    borderRadius: "7px",
+    backgroundColor: 'white',
+    minHeight: '100vh',
+    borderRadius: '7px',
     padding: 20
   },
   header: {
-    fontSize: "1.7em",
-    color: "gray",
-    fontWeight: "bold",
-    textAlign: "center"
+    fontSize: '1.7em',
+    color: 'gray',
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
   m_20: {
     margin: 20
@@ -28,7 +29,16 @@ const styles = () => ({
 });
 export class Bill extends Component {
   async componentDidMount() {
-    await this.props.getBillsWithRedux();
+    const admin_key = JSON.parse(window.localStorage.getItem('adminPageAccess'))
+      .admin_key;
+    const admin = await Axios.get(`/api/users/${admin_key}/adminPermission`);
+    if (!admin.data.admin.bill) {
+      this.setState({ ...this.state, adminAccess: false });
+      return;
+    } else {
+      this.setState({ ...this.state, adminAccess: true });
+      this.props.getBillsWithRedux();
+    }
   }
   handleClose = () => {
     this.setState({ openSnackNumDeleted: false });
@@ -37,6 +47,7 @@ export class Bill extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.numDeleted) {
       this.setState({
+        ...this.state,
         openSnackNumDeleted: true,
         messDeleted: `${nextProps.numDeleted} bills has been deleted`
       });
@@ -44,30 +55,41 @@ export class Bill extends Component {
   }
   state = {
     openSnackNumDeleted: false,
-    messDeleted: ""
+    messDeleted: '',
+    adminAccess: true
   };
   render() {
     const { classes, numDeleted } = this.props;
     return (
       <>
-        <div className={`${classes.root} fadeIn`}>
-          <div className={classes.header}>Bill Manager</div>
-          <Divider variant="middle" className={classes.m_20} />
-          {/* List Bill */}
-          {this.props.bills ? (
-            <BillList bills={this.props.bills.data} />
-          ) : (
+        {this.state.adminAccess ? (
+          <>
             <div className={`${classes.root} fadeIn`}>
-              <div className={classes.header}>Loading...</div>
+              <div className={classes.header}>Bill Manager</div>
+              <Divider variant="middle" className={classes.m_20} />
+              {/* List Bill */}
+              {this.props.bills ? (
+                <BillList bills={this.props.bills.data} />
+              ) : (
+                <div className={`${classes.root} fadeIn`}>
+                  <div className={classes.header}>Loading...</div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {numDeleted && (
-          <div onClick={this.handleClose}>
-            <CustomizedSnackbars open={this.state.openSnackNumDeleted}>
-              {this.state.messDeleted}
-            </CustomizedSnackbars>
+            {numDeleted && (
+              <div onClick={this.handleClose}>
+                <CustomizedSnackbars open={this.state.openSnackNumDeleted}>
+                  {this.state.messDeleted}
+                </CustomizedSnackbars>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className={`${classes.root} fadeIn`}>
+            <div className={classes.header} style={{ color: 'red' }}>
+              Permission Denied
+            </div>
           </div>
         )}
       </>

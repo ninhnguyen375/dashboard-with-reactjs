@@ -1,8 +1,8 @@
-import React from "react";
-import classNames from "classnames";
-import PropTypes from "prop-types";
-import { withStyles } from "@material-ui/core/styles";
-import { Redirect } from "react-router-dom";
+import React from 'react';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
+import { withStyles } from '@material-ui/core/styles';
+import { Redirect } from 'react-router-dom';
 import {
   Toolbar,
   Tooltip,
@@ -18,12 +18,13 @@ import {
   TableRow,
   TableSortLabel,
   Button,
-  TextField
-} from "@material-ui/core";
-import { Build, FilterList, Delete } from "@material-ui/icons";
-import { connect } from "react-redux";
-import { lighten } from "@material-ui/core/styles/colorManipulator";
-import { deleteUsers } from "../../store/action/userAction";
+  TextField,
+  CircularProgress
+} from '@material-ui/core';
+import { Build, FilterList, Delete } from '@material-ui/icons';
+import { connect } from 'react-redux';
+import { lighten } from '@material-ui/core/styles/colorManipulator';
+import { deleteUsers } from '../../store/action/userAction';
 
 function desc(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -46,27 +47,27 @@ function stableSort(array, cmp) {
 }
 
 function getSorting(order, orderBy) {
-  return order === "desc"
+  return order === 'desc'
     ? (a, b) => desc(a, b, orderBy)
     : (a, b) => -desc(a, b, orderBy);
 }
 
 const rows = [
-  { _id: "_id", numeric: true, disablePadding: false, label: "User ID" },
-  { _id: "user_name", numeric: true, disablePadding: false, label: "Name" },
+  { _id: '_id', numeric: true, disablePadding: false, label: 'User ID' },
+  { _id: 'user_name', numeric: true, disablePadding: false, label: 'Name' },
   {
-    _id: "user_phone",
+    _id: 'user_phone',
     numeric: true,
     disablePadding: false,
-    label: "Phone"
+    label: 'Phone'
   },
   {
-    _id: "user_permission",
+    _id: 'user_group',
     numeric: true,
     disablePadding: false,
-    label: "Permission"
+    label: 'User Group'
   },
-  { _id: "user_email", numeric: true, disablePadding: false, label: "Email" }
+  { _id: 'user_email', numeric: true, disablePadding: false, label: 'Email' }
 ];
 
 class UserListHead extends React.Component {
@@ -81,19 +82,37 @@ class UserListHead extends React.Component {
       orderBy,
       numSelected,
       rowCount,
-      onSearch
+      onSearch,
+      onSearchName,
+      onSearchEmail
     } = this.props;
 
     return (
       <TableHead>
         {/* Search */}
         <TableRow>
-          <TableCell colSpan={8}>
+          <TableCell>
             <TextField
-              label="Search by ID   "
+              label="Search by ID"
               type="search"
               margin="normal"
               onChange={onSearch}
+            />
+          </TableCell>
+          <TableCell>
+            <TextField
+              label="Search by Name"
+              type="search"
+              margin="normal"
+              onChange={onSearchName}
+            />
+          </TableCell>
+          <TableCell colSpan={6}>
+            <TextField
+              label="Search by Email"
+              type="search"
+              margin="normal"
+              onChange={onSearchEmail}
             />
           </TableCell>
         </TableRow>
@@ -109,17 +128,20 @@ class UserListHead extends React.Component {
             row => (
               <TableCell
                 key={row._id}
-                align={row.numeric ? "right" : "left"}
-                padding={row.disablePadding ? "none" : "default"}
-                sortDirection={orderBy === row._id ? order : false}>
+                align={row.numeric ? 'right' : 'left'}
+                padding={row.disablePadding ? 'none' : 'default'}
+                sortDirection={orderBy === row._id ? order : false}
+              >
                 <Tooltip
                   title="Sort"
-                  placement={row.numeric ? "bottom-end" : "bottom-start"}
-                  enterDelay={300}>
+                  placement={row.numeric ? 'bottom-end' : 'bottom-start'}
+                  enterDelay={300}
+                >
                   <TableSortLabel
                     active={orderBy === row._id}
                     direction={order}
-                    onClick={this.createSortHandler(row._id)}>
+                    onClick={this.createSortHandler(row._id)}
+                  >
                     {row.label}
                   </TableSortLabel>
                 </Tooltip>
@@ -148,7 +170,7 @@ const toolbarStyles = theme => ({
     paddingRight: theme.spacing.unit
   },
   highlight:
-    theme.palette.type === "light"
+    theme.palette.type === 'light'
       ? {
           color: theme.palette.secondary.main,
           backgroundColor: lighten(theme.palette.secondary.light, 0.85)
@@ -158,20 +180,27 @@ const toolbarStyles = theme => ({
           backgroundColor: theme.palette.secondary.dark
         },
   spacer: {
-    flex: "1 1 100%"
+    flex: '1 1 100%'
   },
   actions: {
     color: theme.palette.text.secondary
   },
   title: {
-    flex: "0 0 auto"
+    flex: '0 0 auto'
   }
 });
 class UserListToolbar extends React.Component {
   handleDelete = async () => {
+    this.setState({ isDeleting: true });
     await this.props.deleteUsers(this.props.selected);
   };
 
+  componentWillUnmount() {
+    this.setState({ isDeleting: false });
+  }
+  state = {
+    isDeleting: false
+  };
   render() {
     const { numSelected, classes } = this.props;
     return (
@@ -179,7 +208,8 @@ class UserListToolbar extends React.Component {
         <Toolbar
           className={classNames(classes.root, {
             [classes.highlight]: numSelected > 0
-          })}>
+          })}
+        >
           <div className={classes.title}>
             {numSelected > 0 ? (
               <Typography color="inherit" variant="subtitle1">
@@ -196,7 +226,11 @@ class UserListToolbar extends React.Component {
             {numSelected > 0 ? (
               <Tooltip title="Delete">
                 <IconButton onClick={this.handleDelete} aria-label="Delete">
-                  <Delete />
+                  {this.state.isDeleting ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    <Delete />
+                  )}
                 </IconButton>
               </Tooltip>
             ) : (
@@ -238,14 +272,14 @@ UserListToolbar = withStyles(toolbarStyles)(
 
 const styles = theme => ({
   root: {
-    width: "100%",
+    width: '100%',
     marginTop: theme.spacing.unit * 3
   },
   table: {
     minWidth: 1020
   },
   tableWrapper: {
-    overflowX: "auto"
+    overflowX: 'auto'
   }
 });
 
@@ -256,21 +290,21 @@ class UserList extends React.Component {
     }
   }
   state = {
-    order: "asc",
-    orderBy: "calories",
+    order: 'asc',
+    orderBy: 'calories',
     selected: [],
     data: [],
     page: 0,
     rowsPerPage: 5,
-    redirectToEdit: ""
+    redirectToEdit: ''
   };
 
   handleRequestSort = (event, property) => {
     const orderBy = property;
-    let order = "desc";
+    let order = 'desc';
 
-    if (this.state.orderBy === property && this.state.order === "desc") {
-      order = "asc";
+    if (this.state.orderBy === property && this.state.order === 'desc') {
+      order = 'asc';
     }
 
     this.setState({ order, orderBy });
@@ -287,7 +321,7 @@ class UserList extends React.Component {
     }
     this.setState({ selected: [] });
   };
-
+  // search by id
   handleSearch = e => {
     const value = e.target.value;
     let filterSearch = [];
@@ -298,7 +332,28 @@ class UserList extends React.Component {
     });
     this.setState({ data: filterSearch });
   };
-
+  // search by name
+  handleSearchName = e => {
+    const value = e.target.value;
+    let filterSearch = [];
+    filterSearch = this.props.users.filter(user => {
+      const val = value.trim().toLowerCase();
+      const name = user.user_name;
+      return name.indexOf(val) !== -1;
+    });
+    this.setState({ data: filterSearch });
+  };
+  // search by email
+  handleSearchEmail = e => {
+    const value = e.target.value;
+    let filterSearch = [];
+    filterSearch = this.props.users.filter(user => {
+      const val = value.trim().toLowerCase();
+      const email = user.user_email;
+      return email.indexOf(val) !== -1;
+    });
+    this.setState({ data: filterSearch });
+  };
   handleClick = (event, _id) => {
     const { selected } = this.state;
     const selectedIndex = selected.indexOf(_id);
@@ -350,6 +405,8 @@ class UserList extends React.Component {
               onSelectAllClick={this.handleSelectAllClick}
               onRequestSort={this.handleRequestSort}
               onSearch={this.handleSearch}
+              onSearchName={this.handleSearchName}
+              onSearchEmail={this.handleSearchEmail}
               rowCount={data.length}
             />
             <TableBody>
@@ -364,7 +421,8 @@ class UserList extends React.Component {
                       aria-checked={isSelected}
                       tabIndex={-1}
                       key={n._id}
-                      selected={isSelected}>
+                      selected={isSelected}
+                    >
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={isSelected}
@@ -374,22 +432,24 @@ class UserList extends React.Component {
                       <TableCell
                         align="right"
                         style={{
-                          padding: "0",
-                          maxWidth: "30px",
-                          wordWrap: "break-word"
-                        }}>
+                          padding: '0',
+                          maxWidth: '30px',
+                          wordWrap: 'break-word'
+                        }}
+                      >
                         {n._id}
                       </TableCell>
                       <TableCell align="right">{n.user_name}</TableCell>
                       <TableCell align="right">{n.user_phone}</TableCell>
-                      <TableCell align="right">{n.user_permission}</TableCell>
+                      <TableCell align="right">{n.user_group}</TableCell>
                       <TableCell align="right">{n.user_email}</TableCell>
                       <TableCell>
                         <Button
                           variant="contained"
                           color="primary"
                           className={classes.button}
-                          onClick={event => this.editUser(event, n._id)}>
+                          onClick={event => this.editUser(event, n._id)}
+                        >
                           <Build style={{ fontSize: 20 }} />
                         </Button>
                       </TableCell>
@@ -411,10 +471,10 @@ class UserList extends React.Component {
           rowsPerPage={rowsPerPage}
           page={page}
           backIconButtonProps={{
-            "aria-label": "Previous Page"
+            'aria-label': 'Previous Page'
           }}
           nextIconButtonProps={{
-            "aria-label": "Next Page"
+            'aria-label': 'Next Page'
           }}
           onChangePage={this.handleChangePage}
           onChangeRowsPerPage={this.handleChangeRowsPerPage}

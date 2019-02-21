@@ -3,7 +3,7 @@ import Axios from "axios";
 export function getCategoriesWithRedux() {
   return async dispatch => {
     dispatch({ type: "GET_REQUEST" });
-    const res = await Axios("http://localhost:3001/api/producers/");
+    const res = await Axios("/api/producers/");
     return dispatch({ type: "GET_SUCCESS", categories: res.data });
   };
 }
@@ -13,7 +13,7 @@ export const createCategory = category => {
     try {
       // adding category
       const res = await Axios.post(
-        "http://localhost:3001/api/producers/",
+        "/api/producers/",
         category
       );
       if (res.data.err) {
@@ -32,7 +32,7 @@ export const deleteCategories = categories => {
       let del = [];
       categories.forEach(category => {
         del.push(
-          Axios.delete(`http://localhost:3001/api/producers/${category}`)
+          Axios.delete(`/api/producers/${category}`)
         );
       });
       await Promise.all(del);
@@ -57,7 +57,7 @@ export const editCategory = category => {
   return async dispatch => {
     try {
       const promiseData = await Axios.put(
-        `http://localhost:3001/api/producers/${category._id}`,
+        `/api/producers/${category._id}`,
         category
       );
       if (promiseData.data.err) {

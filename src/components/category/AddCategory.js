@@ -1,16 +1,16 @@
-import React, { Component } from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { TextField, Button, CircularProgress } from "@material-ui/core";
+import React, { Component } from 'react';
+import { withStyles } from '@material-ui/core/styles';
+import { TextField, Button, CircularProgress } from '@material-ui/core';
 import {
   createCategory,
   getCategoriesWithRedux
-} from "../../store/action/categoryAction";
-import { connect } from "react-redux";
-import CustomizedSnackbars from "../snackbar/CustomizedSnackbars";
+} from '../../store/action/categoryAction';
+import { connect } from 'react-redux';
+import CustomizedSnackbars from '../snackbar/CustomizedSnackbars';
 const styles = () => ({
   container: {
-    display: "flex",
-    flexWrap: "wrap"
+    display: 'flex',
+    flexWrap: 'wrap'
   },
   textField: {
     margin: 10,
@@ -23,30 +23,21 @@ const styles = () => ({
     width: 200
   },
   formTitle: {
-    color: "#4445"
+    color: '#4445'
   },
   bgWhite: {
-    color: "white"
+    color: 'white'
   }
 });
 
 class AddCategory extends Component {
-  async componentDidMount() {
-    await this.props.getCategoriesWithRedux();
-    if (this.props.categories.data) {
-      this.setState({ categories: this.props.categories.data });
-    }
-  }
   state = {
-    producer_name: "",
-    producer_id: "",
+    producer_name: '',
+    producer_id: '',
     isAdding: false,
-    message: "",
+    message: '',
     open: false,
-    err: {
-      errSelection: false
-    },
-    categories: []
+    validateError: false
   };
   handleChange = e => {
     this.setState({ [e.target.name]: e.target.value });
@@ -57,21 +48,15 @@ class AddCategory extends Component {
   validated__input = (stateValue, regex, inputName, setError) => {
     const value = stateValue;
     const input = document.getElementsByName(inputName)[0];
-    if (setError) this.setState({ err: { [setError]: true } });
-
     if (!input) {
       return false;
     }
-    if (!regex.exec(value)) {
+    if (!regex.test(value)) {
       input.focus();
-      input.click();
+      this.setState({ validateError: 'Please complete this field' });
       return false;
     }
-    if (regex.exec(value)[0] !== value) {
-      input.focus();
-      return false;
-    }
-    if (setError) this.setState({ err: { [setError.key]: false } });
+    this.setState({ validateError: '' });
     return true;
   };
   valudated__form = () => {
@@ -79,9 +64,13 @@ class AddCategory extends Component {
       !this.validated__input(
         this.state.producer_name,
         /[\w\s-]{1,}/,
-        "producer_name"
+        'producer_name'
       ) ||
-      !this.validated__input(this.state.producer_id, /[A-Z]{1,}/, "producer_id")
+      !this.validated__input(
+        this.state.producer_id,
+        /^[A-Z]{1,}$/,
+        'producer_id'
+      )
     ) {
       return false;
     }
@@ -117,7 +106,8 @@ class AddCategory extends Component {
           className={classes.container}
           noValidate
           autoComplete="off"
-          onSubmit={this.handleSubmit}>
+          onSubmit={this.handleSubmit}
+        >
           {/* Category Name */}
           <TextField
             required
@@ -125,6 +115,7 @@ class AddCategory extends Component {
             label="Category Name"
             className={classes.textField}
             onChange={this.handleChange}
+            helperText="Not special character"
           />
           {/* ID */}
           <TextField
@@ -133,16 +124,21 @@ class AddCategory extends Component {
             label="ID"
             className={classes.textField}
             onChange={this.handleChange}
+            helperText="Uppercase Only"
           />
-          {this.props.createError && (
-            <h4 style={{ color: "red" }}>{this.props.createError}</h4>
-          )}
         </form>
+        {this.props.createError && (
+          <p style={{ color: 'red' }}>{this.props.createError}</p>
+        )}
+        {this.state.validateError && (
+          <p style={{ color: 'red' }}>{this.state.validateError}</p>
+        )}
         <Button
           variant="contained"
           color="primary"
           form="addNewCategory"
-          type="submit">
+          type="submit"
+        >
           {this.state.isAdding ? (
             <CircularProgress size={24} className={classes.bgWhite} />
           ) : (
@@ -160,8 +156,7 @@ class AddCategory extends Component {
 }
 const mapStateToProps = state => {
   return {
-    createError: state.category.createError,
-    categories: state.category.categories
+    createError: state.category.createError
   };
 };
 const mapDispatchToProps = dispatch => {

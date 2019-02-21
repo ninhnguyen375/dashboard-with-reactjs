@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { withStyles } from "@material-ui/core/styles";
+import React, { Component } from 'react';
+import { withStyles } from '@material-ui/core/styles';
 import {
   TextField,
   Button,
@@ -9,40 +9,48 @@ import {
   Select,
   CircularProgress,
   Grid,
-  Input
-} from "@material-ui/core";
-import { editUser, getUsersWithRedux } from "../../store/action/userAction";
-import { connect } from "react-redux";
-import CustomizedSnackbars from "../snackbar/CustomizedSnackbars";
+  Input,
+  Checkbox
+} from '@material-ui/core';
+import { editUser, getUsersWithRedux } from '../../store/action/userAction';
+import { connect } from 'react-redux';
+import CustomizedSnackbars from '../snackbar/CustomizedSnackbars';
+import { Link } from 'react-router-dom';
 const styles = () => ({
   textField: {
     margin: 10,
     width: 400
   },
   formTitle: {
-    color: "#4445"
+    color: '#4445'
   },
   bgWhite: {
-    color: "white"
+    color: 'white'
   },
   root: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
     // minHeight: "100%",
-    borderRadius: "7px",
+    borderRadius: '7px',
     padding: 20
   }
 });
 
 class EditUser extends Component {
   state = {
-    _id: "",
-    user_name: "",
-    user_password: "",
-    user_permission: "",
-    user_phone: "",
-    user_email: "",
-    onLoading: "",
-    message: "",
+    _id: '',
+    user_name: '',
+    user_password: '',
+    user_group: '',
+    user_phone: '',
+    user_email: '',
+    onLoading: '',
+    message: '',
+    user_permission: {
+      product: false,
+      user: false,
+      bill: false,
+      category: false
+    },
     open: false,
     user: {}
   };
@@ -52,7 +60,12 @@ class EditUser extends Component {
   handleClose = () => {
     this.setState({ open: false });
   };
-
+  checkedCheckBox = () => {
+    const permiss = window.document.getElementsByName('user_permission');
+    for (let i = 0; i < permiss.length; i++) {
+      permiss[i].checked = '';
+    }
+  };
   validated__input = (stateValue, regex, inputName, setError) => {
     const value = stateValue;
     const input = document.getElementsByName(inputName)[0];
@@ -78,28 +91,28 @@ class EditUser extends Component {
       !this.validated__input(
         this.state.user_name,
         /[\w\s-]{1,}/,
-        "user_name"
+        'user_name'
       ) ||
       !this.validated__input(
         this.state.user_password,
         /[\w\s-]{6,}/,
-        "user_password"
+        'user_password'
       ) ||
       !this.validated__input(
         this.state.user_phone,
         /[0-9]{10,12}/,
-        "user_phone"
+        'user_phone'
       ) ||
       !this.validated__input(
-        this.state.user_permission,
+        this.state.user_group,
         /[\w]{1,20}/,
-        "user_permission",
-        "errSelection"
+        'user_group',
+        'errSelection'
       ) ||
       !this.validated__input(
         this.state.user_email,
         /^[a-z][a-z0-9_.]{5,32}@[a-z0-9]{2,}(\.[a-z0-9]{2,4}){1,2}$/,
-        "user_email"
+        'user_email'
       )
     ) {
       return false;
@@ -133,25 +146,42 @@ class EditUser extends Component {
       this.setState({
         user_name: u.user_name,
         user_password: u.user_password,
-        user_permission: u.user_permission,
+        user_group: u.user_group,
         user_phone: u.user_phone,
         user_email: u.user_email,
-        _id: u._id
+        _id: u._id,
+        user_permission: u.user_permission
       });
     }
   }
+  handleSelectPermission = event => {
+    this.setState({
+      user_permission: {
+        ...this.state.user_permission,
+        [event.target.name]: event.target.checked
+      }
+    });
+  };
   render() {
     const { classes } = this.props;
     return (
       <div className={`${classes.root} fadeIn`}>
-        <h2 className={classes.formTitle}>Edit User</h2>
+        <h2 className={classes.formTitle}>
+          Edit User
+          <Link to="/admin/user" style={{ marginLeft: 200 }}>
+            <Button variant="contained" color="default">
+              Back
+            </Button>
+          </Link>
+        </h2>
         {this.props.haveUser ? (
           <Grid container>
             <Grid item xs={6}>
               <form
                 id="addNewUser"
                 autoComplete="off"
-                onSubmit={this.handleSubmit}>
+                onSubmit={this.handleSubmit}
+              >
                 {/* User Name */}
                 <TextField
                   required
@@ -170,7 +200,6 @@ class EditUser extends Component {
                   className={classes.textField}
                   onChange={this.handleChange}
                   value={this.state.user_password}
-                  helpText="Not less than 6 character"
                 />
                 <br />
                 {/* Phone */}
@@ -184,23 +213,54 @@ class EditUser extends Component {
                   type="number"
                 />
                 <br />
-                {/* Permission */}
+                {/* Group */}
                 <FormControl className={classes.textField}>
-                  <InputLabel htmlFor="user_permission-select">
-                    Permission
-                  </InputLabel>
+                  <InputLabel htmlFor="user_group-select">Group</InputLabel>
                   <Select
                     required
-                    value={this.state.user_permission}
+                    value={this.state.user_group}
                     onChange={this.handleChange}
-                    name="user_permission"
+                    name="user_group"
                     renderValue={value => value}
-                    input={<Input id="user_permission-select" />}>
+                    input={<Input id="user_group-select" />}
+                  >
                     <MenuItem value="admin">Admin</MenuItem>
                     <MenuItem value="client">Client</MenuItem>
                   </Select>
                 </FormControl>
                 <br />
+                {/* permission */}
+                {this.state.user_group === 'admin' ? (
+                  <>
+                    <p style={{ color: 'gray', fontSize: '13px' }}>
+                      Choose permission manager:
+                    </p>
+                    <Checkbox
+                      checked={this.state.user_permission.bill}
+                      onChange={this.handleSelectPermission}
+                      name="bill"
+                    />
+                    Bill
+                    <Checkbox
+                      checked={this.state.user_permission.user}
+                      onChange={this.handleSelectPermission}
+                      name="user"
+                    />
+                    User
+                    <Checkbox
+                      checked={this.state.user_permission.product}
+                      onChange={this.handleSelectPermission}
+                      name="product"
+                    />
+                    Product
+                    <Checkbox
+                      checked={this.state.user_permission.category}
+                      onChange={this.handleSelectPermission}
+                      name="category"
+                    />
+                    Category
+                  </>
+                ) : null}
                 {/* Email */}
                 <TextField
                   required
@@ -213,7 +273,7 @@ class EditUser extends Component {
                 />
                 <br />
                 {this.props.editError && (
-                  <h4 style={{ color: "red" }}>{this.props.editError}</h4>
+                  <h4 style={{ color: 'red' }}>{this.props.editError}</h4>
                 )}
               </form>
               {this.state.onLoading ? (
@@ -225,7 +285,8 @@ class EditUser extends Component {
                   variant="contained"
                   color="primary"
                   form="addNewUser"
-                  type="submit">
+                  type="submit"
+                >
                   Edit
                 </Button>
               )}

@@ -18,7 +18,8 @@ import {
   TableRow,
   TableSortLabel,
   Button,
-  TextField
+  TextField,
+  CircularProgress
 } from "@material-ui/core";
 import { Build, FilterList, Delete } from "@material-ui/icons";
 import { connect } from "react-redux";
@@ -119,18 +120,15 @@ class ProductListHead extends React.Component {
                 key={row.id}
                 align={row.numeric ? "right" : "left"}
                 padding={row.disablePadding ? "none" : "default"}
-                sortDirection={orderBy === row.id ? order : false}
-              >
+                sortDirection={orderBy === row.id ? order : false}>
                 <Tooltip
                   title="Sort"
                   placement={row.numeric ? "bottom-end" : "bottom-start"}
-                  enterDelay={300}
-                >
+                  enterDelay={300}>
                   <TableSortLabel
                     active={orderBy === row.id}
                     direction={order}
-                    onClick={this.createSortHandler(row.id)}
-                  >
+                    onClick={this.createSortHandler(row.id)}>
                     {row.label}
                   </TableSortLabel>
                 </Tooltip>
@@ -180,7 +178,15 @@ const toolbarStyles = theme => ({
 });
 class ProductListToolbar extends React.Component {
   handleDelete = async () => {
+    this.setState({ isDeleting: true });
     await this.props.deleteProducts(this.props.selected);
+    // this.setState({ isDeleting: false });
+  };
+  componentWillUnmount() {
+    this.setState({ isDeleting: false });
+  }
+  state = {
+    isDeleting: false
   };
 
   render() {
@@ -190,8 +196,7 @@ class ProductListToolbar extends React.Component {
         <Toolbar
           className={classNames(classes.root, {
             [classes.highlight]: numSelected > 0
-          })}
-        >
+          })}>
           <div className={classes.title}>
             {numSelected > 0 ? (
               <Typography color="inherit" variant="subtitle1">
@@ -208,7 +213,11 @@ class ProductListToolbar extends React.Component {
             {numSelected > 0 ? (
               <Tooltip title="Delete">
                 <IconButton onClick={this.handleDelete} aria-label="Delete">
-                  <Delete />
+                  {this.state.isDeleting ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    <Delete />
+                  )}
                 </IconButton>
               </Tooltip>
             ) : (
@@ -377,8 +386,7 @@ class ProductList extends React.Component {
                       aria-checked={isSelected}
                       tabIndex={-1}
                       key={n.product_id}
-                      selected={isSelected}
-                    >
+                      selected={isSelected}>
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={isSelected}
@@ -393,7 +401,7 @@ class ProductList extends React.Component {
                       <TableCell component="th" scope="row" padding="none">
                         <img
                           alt="product_img"
-                          src={`http://localhost:3001${n.product_img}`}
+                          src={n.product_img}
                           width="100"
                           style={{ padding: 10 }}
                         />
@@ -407,8 +415,7 @@ class ProductList extends React.Component {
                           variant="contained"
                           color="primary"
                           className={classes.button}
-                          onClick={event => this.editProduct(event, n._id)}
-                        >
+                          onClick={event => this.editProduct(event, n._id)}>
                           <Build style={{ fontSize: 20 }} />
                         </Button>
                       </TableCell>

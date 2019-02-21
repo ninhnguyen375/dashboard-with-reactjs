@@ -14,6 +14,7 @@ import {
 import { editBill, getBillsWithRedux } from "../../store/action/billAction";
 import { connect } from "react-redux";
 import CustomizedSnackbars from "../snackbar/CustomizedSnackbars";
+import { Link } from "react-router-dom";
 const styles = () => ({
   textField: {
     margin: 10,
@@ -114,6 +115,7 @@ class EditBill extends Component {
 
       this.setState({
         _id: b._id,
+        createAt: b.createAt,
         authId: b.authId,
         totalPrice: b.totalPrice,
         status: b.status,
@@ -129,7 +131,14 @@ class EditBill extends Component {
     const rows = [...this.state.details];
     return (
       <div className={`${classes.root} fadeIn`}>
-        <h2 className={classes.formTitle}>Edit Bill</h2>
+        <h2 className={classes.formTitle}>
+          Edit Bill
+          <Link to="/admin/bill" style={{ marginLeft: 200 }}>
+            <Button variant="contained" color="default">
+              Back
+            </Button>
+          </Link>
+        </h2>
         {this.props.haveBill ? (
           <Paper>
             <Table>
@@ -137,6 +146,11 @@ class EditBill extends Component {
                 <TableRow>
                   <TableCell>
                     <b>Bill Id : </b> {this.state._id}
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>
+                    <b>Create At : </b> {this.state.createAt}
                   </TableCell>
                 </TableRow>
                 <TableRow>
