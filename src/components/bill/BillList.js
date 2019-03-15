@@ -1,10 +1,10 @@
-import React from "react";
-import classNames from "classnames";
-import PropTypes from "prop-types";
-import { withStyles } from "@material-ui/core/styles";
-import { Redirect } from "react-router-dom";
-import { connect } from "react-redux";
-import moment from "moment";
+import React from 'react';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
+import { withStyles } from '@material-ui/core/styles';
+import { Redirect } from 'react-router-dom';
+import { connect } from 'react-redux';
+import moment from 'moment';
 import {
   Toolbar,
   Tooltip,
@@ -22,10 +22,10 @@ import {
   Button,
   TextField,
   CircularProgress
-} from "@material-ui/core";
-import { Build, Delete, Autorenew } from "@material-ui/icons";
-import { lighten } from "@material-ui/core/styles/colorManipulator";
-import { deleteBills, getBillsWithRedux } from "../../store/action/billAction";
+} from '@material-ui/core';
+import { Build, Delete, Autorenew } from '@material-ui/icons';
+import { lighten } from '@material-ui/core/styles/colorManipulator';
+import { deleteBills, getBillsWithRedux } from '../../store/action/billAction';
 
 function desc(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -48,27 +48,27 @@ function stableSort(array, cmp) {
 }
 
 function getSorting(order, orderBy) {
-  return order === "desc"
+  return order === 'desc'
     ? (a, b) => desc(a, b, orderBy)
     : (a, b) => -desc(a, b, orderBy);
 }
 
 const rows = [
-  { _id: "createAt", numeric: true, disablePadding: false, label: "Create At" },
-  { _id: "_id", numeric: true, disablePadding: false, label: "Bill Id" },
+  { _id: 'createAt', numeric: true, disablePadding: false, label: 'Create At' },
+  { _id: '_id', numeric: true, disablePadding: false, label: 'Bill Id' },
   {
-    _id: "authId",
+    _id: 'authId',
     numeric: true,
     disablePadding: false,
-    label: "User Id"
+    label: 'User Id'
   },
   {
-    _id: "totalPrice",
+    _id: 'totalPrice',
     numeric: true,
     disablePadding: false,
-    label: "Total Price ($)"
+    label: 'Total Price ($)'
   },
-  { _id: "status", numeric: true, disablePadding: false, label: "Status" }
+  { _id: 'status', numeric: true, disablePadding: false, label: 'Status' }
 ];
 
 class BillListHead extends React.Component {
@@ -127,11 +127,12 @@ class BillListHead extends React.Component {
               }}
             />
             <Button
-              style={{ marginTop: "15px" }}
+              style={{ marginTop: '15px' }}
               variant="contained"
               color="primary"
               size="small"
-              onClick={onFilterDate}>
+              onClick={onFilterDate}
+            >
               Filter
             </Button>
           </TableCell>
@@ -148,17 +149,20 @@ class BillListHead extends React.Component {
             row => (
               <TableCell
                 key={row._id}
-                align={row.numeric ? "right" : "left"}
-                padding={row.disablePadding ? "none" : "default"}
-                sortDirection={orderBy === row._id ? order : false}>
+                align={row.numeric ? 'right' : 'left'}
+                padding={row.disablePadding ? 'none' : 'default'}
+                sortDirection={orderBy === row._id ? order : false}
+              >
                 <Tooltip
                   title="Sort"
-                  placement={row.numeric ? "bottom-end" : "bottom-start"}
-                  enterDelay={300}>
+                  placement={row.numeric ? 'bottom-end' : 'bottom-start'}
+                  enterDelay={300}
+                >
                   <TableSortLabel
                     active={orderBy === row._id}
                     direction={order}
-                    onClick={this.createSortHandler(row._id)}>
+                    onClick={this.createSortHandler(row._id)}
+                  >
                     {row.label}
                   </TableSortLabel>
                 </Tooltip>
@@ -187,7 +191,7 @@ const toolbarStyles = theme => ({
     paddingRight: theme.spacing.unit
   },
   highlight:
-    theme.palette.type === "light"
+    theme.palette.type === 'light'
       ? {
           color: theme.palette.secondary.main,
           backgroundColor: lighten(theme.palette.secondary.light, 0.85)
@@ -197,13 +201,13 @@ const toolbarStyles = theme => ({
           backgroundColor: theme.palette.secondary.dark
         },
   spacer: {
-    flex: "1 1 100%"
+    flex: '1 1 100%'
   },
   actions: {
     color: theme.palette.text.secondary
   },
   title: {
-    flex: "0 0 auto"
+    flex: '0 0 auto'
   }
 });
 class BillListToolbar extends React.Component {
@@ -226,7 +230,8 @@ class BillListToolbar extends React.Component {
         <Toolbar
           className={classNames(classes.root, {
             [classes.highlight]: numSelected > 0
-          })}>
+          })}
+        >
           <div className={classes.title}>
             {numSelected > 0 ? (
               <Typography color="inherit" variant="subtitle1">
@@ -254,7 +259,8 @@ class BillListToolbar extends React.Component {
               <Tooltip title="Filter list">
                 <IconButton
                   aria-label="Filter list"
-                  onClick={this.props.onRenew}>
+                  onClick={this.props.onRenew}
+                >
                   <Autorenew />
                 </IconButton>
               </Tooltip>
@@ -291,14 +297,14 @@ BillListToolbar = withStyles(toolbarStyles)(
 
 const styles = theme => ({
   root: {
-    width: "100%",
+    width: '100%',
     marginTop: theme.spacing.unit * 3
   },
   table: {
     minWidth: 1020
   },
   tableWrapper: {
-    overflowX: "auto"
+    overflowX: 'auto'
   }
 });
 
@@ -309,21 +315,21 @@ class BillList extends React.Component {
     }
   }
   state = {
-    order: "asc",
-    orderBy: "calories",
+    order: 'asc',
+    orderBy: 'calories',
     selected: [],
     data: [],
     page: 0,
     rowsPerPage: 5,
-    redirectToEdit: ""
+    redirectToEdit: ''
   };
 
   handleRequestSort = (event, property) => {
     const orderBy = property;
-    let order = "desc";
+    let order = 'desc';
 
-    if (this.state.orderBy === property && this.state.order === "desc") {
-      order = "asc";
+    if (this.state.orderBy === property && this.state.order === 'desc') {
+      order = 'asc';
     }
 
     this.setState({ order, orderBy });
@@ -353,20 +359,20 @@ class BillList extends React.Component {
   };
 
   handleFilterDate = () => {
-    let dateFrom = window.document.getElementById("dateFrom").value;
-    let dateTo = window.document.getElementById("dateTo").value;
+    let dateFrom = window.document.getElementById('dateFrom').value;
+    let dateTo = window.document.getElementById('dateTo').value;
     if (!dateFrom && !dateTo) this.setState({ data: this.props.bills });
-    if (dateFrom === "") return;
-    dateFrom = moment(dateFrom, "YYYY-MM-DD");
-    if (dateTo === "") dateTo = undefined;
-    else dateTo = moment(dateTo, "YYYY-MM-DD");
+    if (dateFrom === '') return;
+    dateFrom = moment(dateFrom, 'YYYY-MM-DD');
+    if (dateTo === '') dateTo = undefined;
+    else dateTo = moment(dateTo, 'YYYY-MM-DD');
     let filterDate = [];
     filterDate = this.props.bills.filter(bill => {
-      return moment(bill.createAt, "YYYY-MM-DD").isBetween(
+      return moment(bill.createAt, 'YYYY-MM-DD').isBetween(
         dateFrom,
         dateTo,
         null,
-        "[]"
+        '[]'
       );
     });
     this.setState({ data: filterDate });
@@ -446,7 +452,8 @@ class BillList extends React.Component {
                       aria-checked={isSelected}
                       tabIndex={-1}
                       key={n._id}
-                      selected={isSelected}>
+                      selected={isSelected}
+                    >
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={isSelected}
@@ -454,24 +461,21 @@ class BillList extends React.Component {
                         />
                       </TableCell>
                       <TableCell
-                        style={{ maxWidth: "30px", wordWrap: "break-word" }}
-                        align="right">
+                        style={{ maxWidth: '30px', wordWrap: 'break-word' }}
+                        align="right"
+                      >
                         {n.createAt}
-                        {console.log(
-                          moment(n.createAt, "YYYY-MM-DD").isBetween(
-                            moment("15-2-2019", "DD-MM-YYYY"),
-                            moment("17-2-2019", "DD-MM-YYYY")
-                          )
-                        )}
                       </TableCell>
                       <TableCell
-                        style={{ maxWidth: "30px", wordWrap: "break-word" }}
-                        align="right">
+                        style={{ maxWidth: '30px', wordWrap: 'break-word' }}
+                        align="right"
+                      >
                         {n._id}
                       </TableCell>
                       <TableCell
-                        style={{ maxWidth: "30px", wordWrap: "break-word" }}
-                        align="right">
+                        style={{ maxWidth: '30px', wordWrap: 'break-word' }}
+                        align="right"
+                      >
                         {n.authId}
                       </TableCell>
                       <TableCell align="right">{n.totalPrice} $</TableCell>
@@ -481,7 +485,8 @@ class BillList extends React.Component {
                           variant="contained"
                           color="primary"
                           className={classes.button}
-                          onClick={event => this.editBill(event, n._id)}>
+                          onClick={event => this.editBill(event, n._id)}
+                        >
                           <Build style={{ fontSize: 20 }} />
                         </Button>
                       </TableCell>
@@ -503,10 +508,10 @@ class BillList extends React.Component {
           rowsPerPage={rowsPerPage}
           page={page}
           backIconButtonProps={{
-            "aria-label": "Previous Page"
+            'aria-label': 'Previous Page'
           }}
           nextIconButtonProps={{
-            "aria-label": "Next Page"
+            'aria-label': 'Next Page'
           }}
           onChangePage={this.handleChangePage}
           onChangeRowsPerPage={this.handleChangeRowsPerPage}

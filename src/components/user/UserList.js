@@ -67,7 +67,8 @@ const rows = [
     disablePadding: false,
     label: 'User Group'
   },
-  { _id: 'user_email', numeric: true, disablePadding: false, label: 'Email' }
+  { _id: 'user_email', numeric: true, disablePadding: false, label: 'Email' },
+  { _id: 'user_status', numeric: true, disablePadding: false, label: 'Status' }
 ];
 
 class UserListHead extends React.Component {
@@ -91,7 +92,7 @@ class UserListHead extends React.Component {
       <TableHead>
         {/* Search */}
         <TableRow>
-          <TableCell>
+          <TableCell colSpan={3}>
             <TextField
               label="Search by ID"
               type="search"
@@ -99,7 +100,7 @@ class UserListHead extends React.Component {
               onChange={onSearch}
             />
           </TableCell>
-          <TableCell>
+          <TableCell colSpan={3}>
             <TextField
               label="Search by Name"
               type="search"
@@ -107,7 +108,7 @@ class UserListHead extends React.Component {
               onChange={onSearchName}
             />
           </TableCell>
-          <TableCell colSpan={6}>
+          <TableCell colSpan={2}>
             <TextField
               label="Search by Email"
               type="search"
@@ -443,6 +444,9 @@ class UserList extends React.Component {
                       <TableCell align="right">{n.user_phone}</TableCell>
                       <TableCell align="right">{n.user_group}</TableCell>
                       <TableCell align="right">{n.user_email}</TableCell>
+                      <TableCell align="right">
+                        {n.user_status.toString()}
+                      </TableCell>
                       <TableCell>
                         <Button
                           variant="contained"

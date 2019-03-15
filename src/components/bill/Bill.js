@@ -3,6 +3,7 @@ import { withStyles } from '@material-ui/core/styles';
 import { Divider } from '@material-ui/core';
 import BillList from './BillList';
 import { connect } from 'react-redux';
+import { Redirect } from 'react-router-dom';
 import {
   getBillsWithRedux,
   closeAlertDeleted
@@ -86,11 +87,7 @@ export class Bill extends Component {
             )}
           </>
         ) : (
-          <div className={`${classes.root} fadeIn`}>
-            <div className={classes.header} style={{ color: 'red' }}>
-              Permission Denied
-            </div>
-          </div>
+          <Redirect to="/admin" />
         )}
       </>
     );

@@ -49,6 +49,7 @@ class EditUser extends Component {
       bill: false,
       category: false
     },
+    user_status: true,
     open: false,
     user: {}
   };
@@ -144,6 +145,11 @@ class EditUser extends Component {
         ...this.state.user_permission,
         [event.target.name]: event.target.checked
       }
+    });
+  };
+  handleSelectUserStatus = event => {
+    this.setState({
+      user_status: event.target.checked
     });
   };
   render() {
@@ -248,6 +254,12 @@ class EditUser extends Component {
                 type="email"
               />
               <br />
+              {/* user status */}
+              Status :
+              <Checkbox
+                checked={this.state.user_status}
+                onChange={this.handleSelectUserStatus}
+              />
               {this.props.createError && (
                 <h4 style={{ color: 'red' }}>{this.props.createError}</h4>
               )}

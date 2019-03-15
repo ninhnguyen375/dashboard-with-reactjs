@@ -288,7 +288,6 @@ class EditProduct extends Component {
   }
 }
 const mapStateToProps = (state, ownProps) => {
-  console.log(state);
   const { id } = ownProps.match.params;
   const products = state.product.products;
   let product = null;

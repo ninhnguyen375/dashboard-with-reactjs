@@ -51,6 +51,7 @@ class EditUser extends Component {
       bill: false,
       category: false
     },
+    user_status: true,
     open: false,
     user: {}
   };
@@ -92,11 +93,6 @@ class EditUser extends Component {
         this.state.user_name,
         /[\w\s-]{1,}/,
         'user_name'
-      ) ||
-      !this.validated__input(
-        this.state.user_password,
-        /[\w\s-]{6,}/,
-        'user_password'
       ) ||
       !this.validated__input(
         this.state.user_phone,
@@ -150,7 +146,8 @@ class EditUser extends Component {
         user_phone: u.user_phone,
         user_email: u.user_email,
         _id: u._id,
-        user_permission: u.user_permission
+        user_permission: u.user_permission,
+        user_status: u.user_status
       });
     }
   }
@@ -160,6 +157,11 @@ class EditUser extends Component {
         ...this.state.user_permission,
         [event.target.name]: event.target.checked
       }
+    });
+  };
+  handleSelectUserStatus = event => {
+    this.setState({
+      user_status: event.target.checked
     });
   };
   render() {
@@ -193,14 +195,26 @@ class EditUser extends Component {
                 />
                 <br />
                 {/* User Password */}
-                <TextField
+                {/* <TextField
                   required
                   name="user_password"
                   label="Password"
                   className={classes.textField}
                   onChange={this.handleChange}
                   value={this.state.user_password}
-                />
+                /> */}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => {
+                    this.setState({
+                      ...this.state,
+                      user_password: '123456'
+                    });
+                  }}
+                >
+                  RESET PASSWORD
+                </Button>
                 <br />
                 {/* Phone */}
                 <TextField
@@ -272,6 +286,12 @@ class EditUser extends Component {
                   type="email"
                 />
                 <br />
+                {/* user status */}
+                Status :
+                <Checkbox
+                  checked={this.state.user_status}
+                  onChange={this.handleSelectUserStatus}
+                />
                 {this.props.editError && (
                   <h4 style={{ color: 'red' }}>{this.props.editError}</h4>
                 )}

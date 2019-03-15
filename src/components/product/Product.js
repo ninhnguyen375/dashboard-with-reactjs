@@ -4,6 +4,7 @@ import AddProduct from './AddProduct';
 import { Divider } from '@material-ui/core';
 import ProductList from './ProductList';
 import { connect } from 'react-redux';
+import { Redirect } from 'react-router-dom';
 import {
   getProductsWithRedux,
   closeAlertDeleted
@@ -92,11 +93,7 @@ export class Product extends Component {
             )}
           </>
         ) : (
-          <div className={`${classes.root} fadeIn`}>
-            <div className={classes.header} style={{ color: 'red' }}>
-              Permission Denied
-            </div>
-          </div>
+          <Redirect to="/admin" />
         )}
       </>
     );

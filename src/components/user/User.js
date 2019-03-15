@@ -3,6 +3,7 @@ import { withStyles } from '@material-ui/core/styles';
 import { Divider } from '@material-ui/core';
 import UserList from './UserList';
 import { connect } from 'react-redux';
+import { Redirect } from 'react-router-dom';
 import {
   getUsersWithRedux,
   closeAlertDeleted
@@ -33,6 +34,7 @@ export class User extends Component {
     const admin_key = JSON.parse(window.localStorage.getItem('adminPageAccess'))
       .admin_key;
     const admin = await Axios.get(`/api/users/${admin_key}/adminPermission`);
+    // check access to "User permission"
     if (!admin.data.admin.user) {
       this.setState({ ...this.state, adminAccess: false });
       return;
@@ -91,11 +93,7 @@ export class User extends Component {
             )}
           </>
         ) : (
-          <div className={`${classes.root} fadeIn`}>
-            <div className={classes.header} style={{ color: 'red' }}>
-              Permission Denied
-            </div>
-          </div>
+          <Redirect to="/admin" />
         )}
       </>
     );
